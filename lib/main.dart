@@ -3,9 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'booking.dart';
 import 'calendar_page.dart';
+import 'home_page.dart';
 import 'logic/mood_controller.dart';
 import 'auth/auth_gate.dart';
 import 'profile/profile_page.dart';
+import 'view_booking.dart';
+import 'guide.dart';
+import 'notifications/notification_service.dart';
 
 
 
@@ -59,13 +63,44 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 2; // Default to Home
+  int _unreadNotifications = 0;
 
-  // Logic remains the same, but index 1 is now your CalendarPage
-  final List<Widget> _pages = [
-    const Placeholder(), // Module 1
-    const CalendarPage(), // REPLACED: Your Journey Page
-    const Placeholder(), // Home
-    const BookingPage(), // Booking
+  @override
+  void initState() {
+    super.initState();
+    _loadUnreadCount();
+    // Refresh notification count periodically
+    _startNotificationListener();
+  }
+
+  void _startNotificationListener() {
+    // Refresh every 5 seconds
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        _loadUnreadCount();
+        _startNotificationListener();
+      }
+    });
+  }
+
+  Future<void> _loadUnreadCount() async {
+    final count = await NotificationService.getUnreadCount();
+    if (mounted) {
+      setState(() => _unreadNotifications = count);
+    }
+  }
+
+  // Merged: GuidePage at index 0, HomePage at index 2, ViewBooking at index 3
+  List<Widget> get _pages => [
+    const GuidePage(), // Wellness Community Guides
+    const CalendarPage(), // Journey Page
+    HomePage(onNavigateToBooking: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const BookingPage()),
+      );
+    }), // Home
+    ViewBooking(onNotificationsRead: _loadUnreadCount), // Booking
     const ProfilePage(), // Profile
   ];
 
@@ -82,14 +117,43 @@ class _MyHomePageState extends State<MyHomePage> {
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          // Refresh notification count when booking tab is selected
+          if (index == 3) {
+            _loadUnreadCount();
+          }
+        },
         type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Module1'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today_rounded), label: 'Journey'),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.book_online), label: 'Booking'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+        items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.library_books), label: 'Guides'),
+          const BottomNavigationBarItem(icon: Icon(Icons.calendar_today_rounded), label: 'Journey'),
+          const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Stack(
+              children: [
+                const Icon(Icons.book_online),
+                if (_unreadNotifications > 0)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            label: 'Booking',
+          ),
+          const BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

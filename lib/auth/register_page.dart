@@ -151,7 +151,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
             // 🚻 GENDER
             DropdownButtonFormField<String>(
-              value: _gender,
+              initialValue: _gender,
               decoration: const InputDecoration(labelText: 'Gender'),
               items: const [
                 DropdownMenuItem(value: 'Male', child: Text('Male')),

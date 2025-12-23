@@ -39,11 +39,15 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         UserAttributes(password: _passwordController.text.trim()),
       );
 
+      // End the recovery session and let AuthGate rebuild to LoginPage
+      await supabase.auth.signOut();
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password updated. Please log in again.')),
+        const SnackBar(
+          content: Text('Password updated. Please log in again.'),
+        ),
       );
-      Navigator.of(context).pop(); // back to AuthGate → Login
     } on AuthException catch (e) {
       _showError(e.message);
     } catch (_) {
