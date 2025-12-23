@@ -4,6 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'booking.dart';
 import 'calendar_page.dart';
 import 'logic/mood_controller.dart';
+import 'auth/auth_gate.dart';
+import 'profile/profile_page.dart';
+
+
 
 
 const String supabaseUrl = 'https://ujcedgkwtpxmclcsjtxv.supabase.co';
@@ -40,7 +44,7 @@ class MyApp extends StatelessWidget {
         // Fixed: Added ColorScheme before .fromSeed
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Mental Health Care App'),
+      home: const AuthGate(),
     );
   }
 }
@@ -62,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
     const CalendarPage(), // REPLACED: Your Journey Page
     const Placeholder(), // Home
     const BookingPage(), // Booking
-    const Placeholder(), // Profile
+    const ProfilePage(), // Profile
   ];
 
   void _onItemTapped(int index) {
